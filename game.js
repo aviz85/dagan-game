@@ -257,6 +257,12 @@ function spawnMonster(isBad = false) {
     
     scene.add(monster);
     
+    // Calculate lifespan based on difficulty (shorter as difficulty increases)
+    const baseLifespan = 5; // Base lifespan in seconds
+    const minLifespan = 1.5; // Minimum lifespan at highest difficulty
+    const lifespanReduction = (baseLifespan - minLifespan) * ((difficulty - 1) / 4);
+    const adjustedLifespan = baseLifespan - lifespanReduction;
+    
     const monsterData = {
         mesh: monster,
         originalY: 0, // Will be above ground when fully appeared
@@ -269,7 +275,7 @@ function spawnMonster(isBad = false) {
         blinkTime: Math.random() * 3 + 1,
         state: 'appearing', // appearing, active, disappearing, gone
         stateTime: 0,
-        lifespan: 3 + Math.random() * 2, // How long the monster stays active
+        lifespan: adjustedLifespan + Math.random(), // How long the monster stays active
         scale: 0.01, // Start tiny
         isBad: isBad
     };
@@ -726,8 +732,14 @@ function updateDifficulty() {
     // Cap difficulty
     if (difficulty > 5) difficulty = 5;
     
-    // Update camera rotation speed
-    cameraRotationSpeed = 0.002 + (difficulty - 1) * 0.001;
+    // Update camera rotation speed - gets faster with higher difficulty
+    cameraRotationSpeed = 0.002 + (difficulty - 1) * 0.002;
+    
+    // Update monster spawn rate - gets faster with higher difficulty
+    // This is applied in the animate function when resetting spawnTimer
+    
+    // Log current difficulty settings
+    console.log(`Difficulty: ${difficulty}, Camera Speed: ${cameraRotationSpeed.toFixed(4)}, Spawn Rate: ${(2/difficulty).toFixed(2)}s`);
 }
 
 // Create confetti particles
@@ -797,7 +809,10 @@ function animate() {
             spawnMonster(isBad);
             
             // Reset timer - spawn faster as difficulty increases
-            spawnTimer = 2 / difficulty;
+            const baseSpawnTime = 2.5; // Base spawn time in seconds
+            const minSpawnTime = 0.8; // Minimum spawn time at highest difficulty
+            const spawnReduction = (baseSpawnTime - minSpawnTime) * ((difficulty - 1) / 4);
+            spawnTimer = baseSpawnTime - spawnReduction;
         }
         
         // Update good monsters
